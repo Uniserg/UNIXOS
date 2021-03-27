@@ -37,7 +37,7 @@ Conversion notes:
 import threading
  
 def proc(n):
-   print "Процесс", n
+   print ("Процесс", n)
  
 p1 = threading.Thread(target=proc, name="t1", args=["1"])
 p2 = threading.Thread(target=proc, name="t2", args=["2"])
