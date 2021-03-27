@@ -1,13 +1,11 @@
 import socket
 import threading
-import queue
 
 
 class Client:
     def __init__(self):
         self.sock = socket.socket()
         self.sock.setblocking(True)
-        # self.recv_pack = queue.Queue()
         self.threads = set()
         self.stop = True
 
@@ -17,7 +15,6 @@ class Client:
         self.connect_to()
         threading.Thread(name='listening-sock', target=self.listen_sock_server_recv_data).start()
         threading.Thread(name='sending-data', target=self.send_to_server).start()
-        # threading.Thread(name='receiving-data', target=self.receive_data).start()
 
     def _stop_client(self):
         self.stop = True
@@ -54,26 +51,17 @@ class Client:
             except (socket.gaierror, ConnectionRefusedError) as e:
                 print(f"Не удается подключиться к {host}:{port} ({e})!")
 
-    # @_check_connect
-    # def receive_data(self):
-    #     while True:
-    #         if not self.recv_pack.empty():
-    #             print(self.recv_pack.get())
-
     @_check_connect
     def listen_sock_server_recv_data(self):
         while True:
             data = self.sock.recv(1024).decode()
             print(data)
-            # self.recv_pack.put(data)
 
     @_check_connect
     def send_to_server(self):
         while True:
             input_data = self._input_check()
             self.sock.send(input_data.encode())
-            # if not self.recv_pack.empty():
-            #     self.sock.send(input_data.encode())
 
 
 if __name__ == '__main__':
