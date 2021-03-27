@@ -15,7 +15,6 @@ class Server:
         self.port = port
         self.host = socket.gethostname()
         self.clients_conn = set()
-        # self.recv_pack = queue.Queue()
         self.sock = socket.socket()
         self.sock.setblocking(True)
         self.db_conn = sqlite3.connect("chat.db", check_same_thread=False)
