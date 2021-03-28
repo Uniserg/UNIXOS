@@ -34,7 +34,6 @@ class Client:
 
     def close_sock(self):
         if self.sock is not None:
-            print(self.sock)
             print(f'Соединение с {self.sock.getpeername()} потеряно!')
             self.sock.close()
             self.sock = None
@@ -44,7 +43,6 @@ class Client:
         if a == '/stop' or a == '/exit':
             self.close_sock()
             self.stop = True
-            exit()
 
         elif a == '/disconnect':
             self.close_sock()
