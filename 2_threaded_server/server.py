@@ -112,7 +112,8 @@ class Server:
                              target=self.listen_client_sock_recv_data,
                              args=(client_sock, client_name))\
                 .start()
-            client_sock[0].send(f'Привет, {client_name}!'.encode())
+            # client_sock[0].send(f'{client_name} присоединился к нам! Добро пожаловать!'.encode())
+            self.broadcast_msg(f' {client_sock[1]} - {client_name} присоединился к нам! Добро пожаловать!')
 
     def listen_client_sock_recv_data(self, client_sock, name):
         while True:

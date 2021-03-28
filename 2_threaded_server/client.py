@@ -4,34 +4,50 @@ import threading
 
 class Client:
     def __init__(self):
-        self.sock = socket.socket()
-        self.sock.setblocking(True)
-        self.threads = set()
+        self.sock = None
         self.stop = True
 
     def start_client(self):
         self.stop = False
 
-        self.connect_to()
-        threading.Thread(name='listening-sock', target=self.listen_sock_server_recv_data).start()
-        threading.Thread(name='sending-data', target=self.send_to_server).start()
+        while True:
+            self.connect_to()
+            listening = threading.Thread(name='listening-sock', target=self.listen_sock_server_recv_data)
+            sending = threading.Thread(name='sending-data', target=self.send_to_server)
 
-    def _stop_client(self):
-        self.stop = True
-        self.sock.close()
+            listening.start()
+            sending.start()
+            listening.join()
+            sending.join()
+
+            if self.stop:
+                break
 
     def _check_connect(func):
-        def wrapper(*params):
+        def wrapper(self, *params):
             try:
-                func(*params)
-            except OSError:
-                exit()
+                func(self, *params)
+            except (OSError, AttributeError):
+                self.close_sock()
+
         return wrapper
+
+    def close_sock(self):
+        if self.sock is not None:
+            print(self.sock)
+            print(f'Соединение с {self.sock.getpeername()} потеряно!')
+            self.sock.close()
+            self.sock = None
 
     def _input_check(self, message=''):
         a = input(message)
         if a == '/stop' or a == '/exit':
-            self._stop_client()
+            self.close_sock()
+            self.stop = True
+            exit()
+
+        elif a == '/disconnect':
+            self.close_sock()
         return a
 
     def connect_to(self):
@@ -43,6 +59,9 @@ class Client:
             except ValueError:
                 print("Неверно указан адрес! Попробуйте еще раз!")
                 continue
+
+            self.sock = socket.socket()
+            self.sock.setblocking(True)
 
             try:
                 self.sock.connect((host, port))
