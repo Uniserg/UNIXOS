@@ -3,6 +3,14 @@ import logging
 from datetime import datetime
 import sqlite3
 
+
+class User:
+    def __init__(self, ip, name, password):
+        self._ip = ip
+        self._name = name
+        self._password = password
+
+
 conn_db = sqlite3.connect("echo_server.db")
 cursor = conn_db.cursor()
 
@@ -43,11 +51,50 @@ def get_data():
     except (ConnectionResetError, KeyboardInterrupt) as e:
         write_log(logging.error, f"Stop program: lost connection from client({e})")
         # close_server()
-
     return data
 
 
-def identification(ip):
+def _is_null(obj, name:str):
+    if obj is None or not obj:
+        conn.send(f"Неккортный ввод: {name}".encode())
+        return True
+    return False
+
+
+def registration(ip):
+    # поток
+    # вынести в функцию
+    name: str = ''
+    password: str = ''
+
+    while True:
+        conn.send("Создайте имя: ".encode())
+        name = get_data()
+        if name == 'exit':
+            exit()
+        if _is_null(name, "имя"):
+            continue
+
+        conn.send(f"Создайте пароль для {name}: ".encode())
+        password = get_data()
+        if password == 'exit':
+            exit()
+        if _is_null(password, "пароль"):
+            continue
+
+        break
+
+
+
+    sql = "INSERT INTO clients VALUES(?,?,?)"
+    cursor.execute(sql, (addr[0], name, password))
+    conn_db.commit()
+
+
+
+
+
+def authentication(ip):
 
     sql = "SELECT name " \
           "FROM clients " \
@@ -94,7 +141,7 @@ while True:
 
 while True:
     write_log(logging.info, f"Слушаем порт {port}")
-    sock.listen(1)
+    sock.listen(max_port)
 
     try:
         conn, addr = sock.accept()
@@ -104,7 +151,7 @@ while True:
         write_log(logging.error, f"Stop program: \n{k}")
         close_server()
 
-    client_name = identification(addr[0])
+    client_name = authentication(addr[0])
 
     if client_name is None:
         continue
