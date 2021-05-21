@@ -12,7 +12,7 @@ class Client:
 
         while True:
             self.connect_to()
-            listening = threading.Thread(name='listening-sock', target=self.listen_sock_server_recv_data)
+            listening = threading.Thread(name='listening-sock', target=self.listen_server_sock_data)
             sending = threading.Thread(name='sending-data', target=self.send_to_server)
 
             listening.start()
@@ -33,13 +33,7 @@ class Client:
 
         return wrapper
 
-    def close_sock(self):
-        if self.sock is not None:
-            print(f'Соединение с {self.sock.getpeername()} потеряно!')
-            self.sock.close()
-            self.sock = None
-
-    def _input_check(self, message=''):
+    def _check_input(self, message=''):
         a = input(message)
         if a == '/stop' or a == '/exit':
             self.close_sock()
@@ -49,12 +43,18 @@ class Client:
             self.close_sock()
         return a
 
+    def close_sock(self):
+        if self.sock is not None:
+            print(f'Соединение с {self.sock.getpeername()} потеряно!')
+            self.sock.close()
+            self.sock = None
+
     def connect_to(self):
         print('Давайте подключимся... ')
         while True:
-            host = self._input_check("Введите имя хоста: ")
+            host = self._check_input("Введите имя хоста: ")
             try:
-                port = int(self._input_check(f"Введите порт для {host}: "))
+                port = int(self._check_input(f"Введите порт для {host}: "))
             except ValueError:
                 print("Неверно указан адрес! Попробуйте еще раз!")
                 continue
@@ -70,7 +70,7 @@ class Client:
                 print(f"Не удается подключиться к {host}:{port} ({e})!")
 
     @_check_connect
-    def listen_sock_server_recv_data(self):
+    def listen_server_sock_data(self):
         while True:
             data = self.sock.recv(1024).decode()
             print(data)
@@ -78,7 +78,7 @@ class Client:
     @_check_connect
     def send_to_server(self):
         while True:
-            input_data = self._input_check()
+            input_data = self._check_input()
             self.sock.send(input_data.encode())
 
 
